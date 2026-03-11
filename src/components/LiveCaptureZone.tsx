@@ -146,11 +146,11 @@ export function LiveCaptureZone({ onCaptureComplete, onCancel }: LiveCaptureZone
           />
         </div>
         
-        <div style={{ display: 'flex', gap: '1rem', width: '100%', justifyContent: 'center' }}>
-          <button className="btn btn-secondary" onClick={handleDiscard}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', width: '100%', justifyContent: 'center' }}>
+          <button className="btn btn-secondary" style={{ flex: '1 1 auto', minWidth: '160px' }} onClick={handleDiscard}>
             <X size={18} /> Discard & Retake
           </button>
-          <button className="btn btn-primary" onClick={handleApprove}>
+          <button className="btn btn-primary" style={{ flex: '1 1 auto', minWidth: '160px' }} onClick={handleApprove}>
             <Check size={18} /> Yes, Extract Now
           </button>
         </div>
@@ -173,7 +173,7 @@ export function LiveCaptureZone({ onCaptureComplete, onCancel }: LiveCaptureZone
           autoPlay 
           playsInline 
           muted 
-          style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
         
         {/* Recording Indicator Overlay */}
@@ -209,15 +209,15 @@ export function LiveCaptureZone({ onCaptureComplete, onCancel }: LiveCaptureZone
         )}
       </div>
 
-      <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-secondary)', gap: '2rem' }}>
+      <div style={{ padding: '1.5rem 1rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-secondary)', gap: '1rem' }}>
         {!isRecording ? (
           <>
-             <button className="btn btn-secondary" onClick={onCancel} style={{ fontSize: '0.875rem' }}>
+             <button className="btn btn-secondary" onClick={onCancel} style={{ flex: 1, minWidth: '100px', fontSize: '0.875rem' }}>
                Cancel
              </button>
              <button 
                className="btn btn-primary" 
-               style={{ borderRadius: 'var(--radius-full)', padding: '1rem 2rem', fontSize: '1.1rem' }}
+               style={{ flex: 2, minWidth: '200px', borderRadius: 'var(--radius-full)', padding: '1rem 2rem', fontSize: '1.1rem' }}
                onClick={handleStartCapture}
              >
                <Camera size={24} /> Start Capture
@@ -226,7 +226,7 @@ export function LiveCaptureZone({ onCaptureComplete, onCancel }: LiveCaptureZone
         ) : (
           <button 
             className="btn btn-danger" 
-            style={{ borderRadius: 'var(--radius-full)', padding: '1rem 2rem', fontSize: '1.1rem', background: 'var(--danger)', color: 'white' }}
+            style={{ width: '100%', borderRadius: 'var(--radius-full)', padding: '1rem 2rem', fontSize: '1.1rem', background: 'var(--danger)', color: 'white' }}
             onClick={handleStopCapture}
           >
             <Square size={20} fill="white" /> Stop Recording

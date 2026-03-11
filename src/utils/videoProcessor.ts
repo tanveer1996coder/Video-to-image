@@ -114,10 +114,24 @@ export async function processVideo(
     const keptFrames: ExtractedFrame[] = [];
 
     video.onloadedmetadata = async () => {
-      const duration = video.duration;
+      let duration = video.duration;
+
+      // Workaround for Chrome/WebM bug where duration is Infinity or NaN on generated Blobs
+      if (duration === Infinity || isNaN(duration)) {
+        video.currentTime = Number.MAX_SAFE_INTEGER;
+        await new Promise<void>((resolveSeek) => {
+          const handler = () => {
+            video.removeEventListener('seeked', handler);
+            duration = video.duration;
+            resolveSeek();
+          };
+          video.addEventListener('seeked', handler);
+        });
+      }
+
       const width = video.videoWidth;
       const height = video.videoHeight;
-      const totalFramesToExtract = Math.floor(duration / options.intervalSec);
+      const totalFramesToExtract = duration && duration !== Infinity ? Math.max(1, Math.floor(duration / options.intervalSec)) : 100;
       let framesExtractedCount = 0;
 
       // Extract high resolution frame
