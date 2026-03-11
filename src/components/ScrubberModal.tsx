@@ -21,9 +21,26 @@ export function ScrubberModal({ videoFile, initialTime, onConfirm, onClose }: Sc
     }
   }, [initialTime]);
 
-  const handleLoadedMetadata = () => {
+  const handleLoadedMetadata = async () => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration);
+      let dur = videoRef.current.duration;
+      if (dur === Infinity || isNaN(dur)) {
+        videoRef.current.currentTime = Number.MAX_SAFE_INTEGER;
+        await new Promise<void>((resolveSeek) => {
+          const handler = () => {
+            if (videoRef.current) {
+              videoRef.current.removeEventListener('seeked', handler);
+              dur = videoRef.current.duration;
+              setDuration(dur);
+              videoRef.current.currentTime = initialTime;
+            }
+            resolveSeek();
+          };
+          videoRef.current?.addEventListener('seeked', handler);
+        });
+      } else {
+        setDuration(dur);
+      }
     }
   };
 
@@ -97,8 +114,8 @@ export function ScrubberModal({ videoFile, initialTime, onConfirm, onClose }: Sc
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            <span>{currentTime.toFixed(2)}s</span>
-            <span>{duration.toFixed(2)}s</span>
+            <span>{currentTime === Infinity ? '0.00' : currentTime.toFixed(2)}s</span>
+            <span>{duration === Infinity ? '...' : duration.toFixed(2)}s</span>
           </div>
           <input
             type="range"
