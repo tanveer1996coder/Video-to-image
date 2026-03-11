@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Camera, Square, Check, X, Maximize } from 'lucide-react';
+import { Camera, Square, Check, X } from 'lucide-react';
 
 interface LiveCaptureZoneProps {
   onCaptureComplete: (file: File) => void;
@@ -13,22 +13,31 @@ export function LiveCaptureZone({ onCaptureComplete, onCancel }: LiveCaptureZone
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [recordedBlobUrl, setRecordedBlobUrl] = useState<string | null>(null);
   
-  const [isPulseActive, setIsPulseActive] = useState(false);
+  const [cycleTime, setCycleTime] = useState(0); // 0 to 3000ms
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordStartTimeRef = useRef<number>(0);
   
   useEffect(() => {
-    let pulseInterval: ReturnType<typeof setInterval>;
+    let animationFrame: number;
+    
     if (isRecording) {
-      // Toggle pulse animation precisely every second while recording
-      pulseInterval = setInterval(() => {
-        setIsPulseActive(prev => !prev);
-      }, 1000);
+      recordStartTimeRef.current = Date.now();
+      
+      const updateCycle = () => {
+        const elapsed = Date.now() - recordStartTimeRef.current;
+        setCycleTime(elapsed % 3000); // 3 second cycle
+        animationFrame = requestAnimationFrame(updateCycle);
+      };
+      animationFrame = requestAnimationFrame(updateCycle);
     } else {
-      setIsPulseActive(false);
+      setCycleTime(0);
     }
-    return () => clearInterval(pulseInterval);
+    
+    return () => {
+      cancelAnimationFrame(animationFrame);
+    };
   }, [isRecording]);
 
   const startCamera = async () => {
@@ -159,6 +168,11 @@ export function LiveCaptureZone({ onCaptureComplete, onCancel }: LiveCaptureZone
   }
 
   // Phase 1: Live Recording View
+  
+  const cyclePhase = cycleTime < 1500 ? 'hold' : 'flip';
+  const progressRatio = cycleTime / 3000;
+  const showFlash = cycleTime >= 1500 && cycleTime < 1650; // 150ms flash at the apex
+  
   return (
     <div className="glass-card animate-fade-in" style={{ 
       padding: '0', 
@@ -188,23 +202,46 @@ export function LiveCaptureZone({ onCaptureComplete, onCancel }: LiveCaptureZone
           }}>
             <div style={{ 
               width: '10px', height: '10px', borderRadius: '50%', background: 'var(--danger)',
-              opacity: isPulseActive ? 1 : 0.4, transition: 'opacity 0.2s ease'
+              opacity: cycleTime % 1000 < 500 ? 1 : 0.4, transition: 'opacity 0.2s ease'
             }} />
             REC
           </div>
         )}
 
-        {/* Pulse Hint Overlay */}
+        {/* Shutter Flash */}
+        {isRecording && showFlash && (
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(255, 255, 255, 0.8)',
+            zIndex: 10
+          }} />
+        )}
+
+        {/* Pacing Timer Overlay */}
         {isRecording && (
            <div style={{
              position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
-             background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+             background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
              padding: '0.75rem 1.5rem', borderRadius: 'var(--radius-full)',
-             color: 'white', textAlign: 'center', whiteSpace: 'nowrap',
-             opacity: isPulseActive ? 1 : 0.6, transition: 'opacity 0.5s ease',
-             display: 'flex', alignItems: 'center', gap: '0.5rem'
+             color: 'white', display: 'flex', alignItems: 'center', gap: '1rem',
+             boxShadow: '0 4px 6px rgba(0,0,0,0.3)', minWidth: '220px', zIndex: 11
            }}>
-             <Maximize size={16} /> Hold steady for clear frames...
+             
+             {/* Circular Progress Indicator */}
+             <div style={{
+               width: '24px', height: '24px', borderRadius: '50%',
+               background: `conic-gradient(var(--accent-primary) ${progressRatio * 360}deg, rgba(255,255,255,0.2) 0deg)`,
+               flexShrink: 0
+             }} />
+
+             <span style={{ 
+               fontWeight: cyclePhase === 'hold' ? 600 : 400,
+               color: cyclePhase === 'hold' ? '#10b981' : 'white',
+               whiteSpace: 'nowrap',
+               fontSize: '0.95rem'
+             }}>
+               {cyclePhase === 'hold' ? 'Hold steady...' : 'Flip to next page!'}
+             </span>
            </div>
         )}
       </div>
