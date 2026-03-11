@@ -1,0 +1,51 @@
+/* Image Editor Additions */
+@media (max-width: 768px) {
+  .image-editor-container {
+    padding: 0 !important;
+  }
+  
+  .image-editor-container .glass-panel {
+    flex-direction: column !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    padding: 1rem !important;
+    gap: 1rem !important;
+  }
+  
+  .image-editor-container .editor-controls {
+    width: 100% !important;
+    height: auto !important;
+    flex: 1;
+  }
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  background: transparent;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  margin-top: -6px;
+  box-shadow: var(--shadow-sm);
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.2);
+  border-radius: var(--radius-full);
+}
